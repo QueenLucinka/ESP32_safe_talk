@@ -1,0 +1,12 @@
+Setting Up the Dash Web Application
+
+Create a Dash Web Application:
+This application visualizes temperature data from the ESP32 device in real time.
+Access it by navigating to http://127.0.0.1:8050 in your web browser after running the application.
+
+Key Features:
+Displays live updates of temperature data.
+Automatically refreshes every minute.
+
+Code Overview:
+The main file (app.py) reads data from the specified text file, processes it, and generates an interactive graph.

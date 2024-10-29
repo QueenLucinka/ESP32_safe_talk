@@ -1,0 +1,26 @@
+# Step 1: Generate the Root CA Private Key
+openssl genrsa -out ca.key 2048  # Generate a 2048-bit RSA private key for the Certificate Authority (CA)
+
+# Step 2: Generate the Root CA Certificate
+openssl req -x509 -new -nodes -key ca.key -sha256 -days 1024 -out ca.crt
+# Note: For the Common Name (CN), you can use your organization name or the root CA name.
+# For testing purposes, you can use the IP address of your PC.
+# This method requires regenerating new certificates whenever you change your Wi-Fi.
+
+# Step 3: Generate the Server Private Key
+openssl genrsa -out server.key 2048  # Generate a 2048-bit RSA private key for the server.
+
+# Step 4: Create a Certificate Signing Request (CSR) for the Server
+openssl req -new -key server.key -out server.csr
+# Note: The Common Name (CN) for the server certificate should be the IP address of your PC or a domain name.
+# Ensure the CN matches what clients will use to connect to the server.
+
+# Step 5: Generate the Server Certificate using the Root CA
+openssl x509 -req -in server.csr -CA ca.crt -CAkey ca.key -CAcreateserial -out server.crt -days 1024 -sha256
+# This command signs the server's CSR with the root CA, creating a server certificate.
+
+# Final Notes:
+# - Ensure to replace 'YourOrganization' and any placeholder information with actual values relevant to your setup.
+# - Keep the private keys (ca.key and server.key) secure and never share them publicly.
+# - Use the generated certificates (ca.crt and server.crt) in your Node-RED or other server configurations for enabling HTTPS communication.
+# - Consider setting up a proper hostname or domain for consistent certificate usage across networks if you frequently change networks.
