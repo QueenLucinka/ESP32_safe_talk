@@ -1,101 +1,45 @@
 // If run, change file to main.cpp
 // If kept as main.cpp, it may cause trouble when building and uploading the project
 
-/*
-FIRST TRY TO CONNECT ESP32 TO THE WIFI 
-This code initializes the ESP32, connects it to a specified Wi-Fi network, and prints the local IP address upon successful connection.
+#include <WiFi.h>
+#include <HTTPClient.h>
 
-*/
-
-#include <WiFi.h>  // Include the ESP32 WiFi library
-
-// Replace with your network credentials
-const char* ssid = "wifi name";  // Wi-Fi network name (SSID)
-const char* password = "wifi password";  // Wi-Fi network password
+const char* ssid = "wifi name";
+const char* password = "wifi password";
 
 void setup() {
-  Serial.begin(115200);  // Initialize serial communication at 115200 baud rate
+  Serial.begin(115200);
 
-  // Connect to Wi-Fi
-  WiFi.begin(ssid, password);  // Start Wi-Fi connection using provided credentials
-  Serial.print("Connecting to WiFi...");  // Print message indicating connection attempt
-
-  // Wait until the ESP32 is connected to the Wi-Fi
+  WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) {
-    delay(1000);  // Wait for 1 second
-    Serial.print(".");  // Print a dot to indicate progress
+    delay(1000);
+    Serial.println("Connecting to WiFi...");
   }
-
-  // When connected, print the IP address assigned to the ESP32
-  Serial.println();  // Move to the next line
-  Serial.print("Connected! IP address: ");
-  Serial.println(WiFi.localIP());  // Print the local IP address
+  Serial.println("Connected to Wi-Fi. IP address: " + WiFi.localIP().toString());
 }
 
 void loop() {
-  // Nothing here so far
-}
-
-/*
-SECOND PART OF THE CODE
-
-NOW CONNECT ESP32 TO NODERED AND SEND MESSAGE (WORKS)
-This section of the code sends a JSON payload containing temperature data to a Node-RED server.
-
-*/
-
-#include <WiFi.h>  // Include the ESP32 WiFi library
-#include <HTTPClient.h>  // Include the HTTPClient library for making HTTP requests
-
-// Replace with your network credentials
-const char* ssid = "wifi name";  // Wi-Fi network name (SSID)
-const char* password = "wifi password";  // Wi-Fi network password
-
-void setup() {
-  Serial.begin(115200);  // Initialize serial communication at 115200 baud rate
-
-  // Connect to Wi-Fi
-  WiFi.begin(ssid, password);  // Start Wi-Fi connection using provided credentials
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(1000);  // Wait for 1 second
-    Serial.println("Connecting to WiFi...");  // Print message indicating connection attempt
-  }
-  Serial.println("Connected! IP address: " + WiFi.localIP().toString());  // Print IP address upon successful connection
-}
-
-void loop() {
-  // Check if Wi-Fi is connected
   if (WiFi.status() == WL_CONNECTED) {
-    HTTPClient http;  // Create an HTTPClient object
+    HTTPClient http;
 
-    // Specify the URL and the endpoint of Node-RED
-    http.begin("http://192.168.10.108:1880/data"); // Replace with your Node-RED IP address
+    // Configure Node-RED endpoint
+    http.begin("http://192.168.10.108:1880/data");
+    http.addHeader("Content-Type", "application/json");
 
-    // Specify content-type
-    http.addHeader("Content-Type", "application/json");  // Set the content type of the request to JSON
+    String payload = "{\"sensor\":\"temperature\",\"value\":25}";
 
-    // Create a JSON payload (replace with actual sensor data if needed)
-    String payload = "{\"sensor\":\"temperature\",\"value\":25}";  // Sample JSON payload
+    int httpResponseCode = http.POST(payload);
 
-    // Send HTTP POST request
-    int httpResponseCode = http.POST(payload);  // Send POST request with payload
-
-    // Check the response code
     if (httpResponseCode > 0) {
-      String response = http.getString();  // Get response from server
-      Serial.println("Response from server: " + response);  // Print server response
+      String response = http.getString();
+      Serial.println("Server response: " + response);
     } else {
-      Serial.println("Error on sending POST: " + String(httpResponseCode));  // Print error code
+      Serial.println("POST request failed. Error code: " + String(httpResponseCode));
     }
 
-    // End the HTTP connection
-    http.end();  // Close the connection
+    http.end();
   }
 
   // Send data every 10 seconds
-  delay(10000);  // Wait for 10 seconds before sending the next data
+  delay(10000);
 }
-
-// To view the chart, access: http://192.168.10.108:1880/ui
-// To see the flowchart created in Node-RED, access: http://192.168.10.108:1880/#
-
